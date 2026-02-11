@@ -1,0 +1,15 @@
+# pyproject.toml
+[project]
+name = "comfy-nekonote-extensions"
+description = "Comfy NEKONOTE extensions"
+version = "0.0.1"
+license = { file = "LICENSE" }
+dependencies  = []
+
+[project.urls]
+Repository = "https://github.com/0nyx-networks/comfy-nekonote-extensions"
+
+[tool.comfy]
+PublisherId = "m10i"
+DisplayName = "m10i"
+Icon = "https://raw.githubusercontent.com/0nyx-networks/comfy-nekonote-extensions/refs/heads/main/assets/image.png"
