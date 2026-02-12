@@ -2,7 +2,7 @@
 [project]
 name = "comfy-nekonote-extensions"
 description = "Comfy NEKONOTE extensions"
-version = "0.0.1"
+version = "0.0.2"
 license = { file = "LICENSE" }
 dependencies  = []
 
