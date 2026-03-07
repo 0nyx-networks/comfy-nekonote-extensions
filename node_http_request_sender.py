@@ -102,7 +102,7 @@ class HttpRequestSender(comfy_api_io.ComfyNode):
                     id="user_agent",
                     display_name="User Agent",
                     tooltip="User agent string to be sent with the request.",
-                    default=f"comfy-nekonote-extensions/{Utils.get_version()}",
+                    default=f"python-httpx/{httpx.__version__} comfy-nekonote-extensions/{Utils.get_version()}",
                     multiline=False,
                     optional=True
                 ),
@@ -136,7 +136,7 @@ class HttpRequestSender(comfy_api_io.ComfyNode):
                 multipart_field_name_in_image: str = "upload_image",
                 multipart_field_name_in_body: str = "metadata",
                 send_image_enabled: bool = False,
-                user_agent: str = f"comfy-nekonote-extensions/{Utils.get_version()}",
+                user_agent: str = f"python-httpx/{httpx.__version__} comfy-nekonote-extensions/{Utils.get_version()}",
                 **kwargs) -> comfy_api_io.NodeOutput:
 
         if not request_url:
