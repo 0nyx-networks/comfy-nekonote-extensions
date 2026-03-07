@@ -48,6 +48,12 @@ class ConvertCsvToJson(comfy_api_io.ComfyNode):
         try:
             input_csv = list(csv.reader(input_string.splitlines()))
 
+            # Strip whitespace from each element and flatten single row
+            if len(input_csv) == 1:
+                input_csv = [item.strip() for item in input_csv[0]]
+            else:
+                input_csv = [[item.strip() for item in row] for row in input_csv]
+
             output_string: str = ""
             if pretty_enabled:
                 output_string = json.dumps(input_csv, indent=4, ensure_ascii=False, sort_keys=sort_enabled)
