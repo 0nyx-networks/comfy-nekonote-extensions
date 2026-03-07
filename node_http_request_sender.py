@@ -221,11 +221,11 @@ class HttpRequestSender(comfy_api_io.ComfyNode):
                     )
 
                 if response is None:
-                    print(f"[HttpRequestSender] Response is None")
+                    print(f"[HttpRequestSender] WARNING: Response is None")
                     return comfy_api_io.NodeOutput(500, "No response received", "")
 
-                print(f"[HttpRequestSender] Response Status: {response.status_code}")
-                print(f"[HttpRequestSender] Response: {response.text}")
+                #print(f"[HttpRequestSender] Response Status: {response.status_code}")
+                #print(f"[HttpRequestSender] Response: {response.text}")
                 return comfy_api_io.NodeOutput(response.status_code, response.text, response.cookies)
 
         except httpx.ConnectError as e:
