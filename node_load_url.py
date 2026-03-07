@@ -10,12 +10,12 @@ import httpx
 
 from .utils import Utils
 
-class LoadImageFromUrlNode(comfy_api_io.ComfyNode):
+class LoadImageFromUrl(comfy_api_io.ComfyNode):
     @classmethod
     def define_schema(cls) -> comfy_api_io.Schema:
         return comfy_api_io.Schema(
-            node_id="LoadImageFromUrlNode",
-            display_name="Load Image From URL Node",
+            node_id="LoadImageFromUrl",
+            display_name="Load image from URL",
             category="NEKONOTE/Load",
             is_output_node=True,
             inputs=[
@@ -43,11 +43,11 @@ class LoadImageFromUrlNode(comfy_api_io.ComfyNode):
                 response.raise_for_status()
                 img_data = response.content
             else:
-                print(f"[LoadImageFromUrlNode] WARNING: Unsupported URL scheme.")
+                print(f"[LoadImageFromUrl] WARNING: Unsupported URL scheme.")
 
             # Validate image data
             if not img_data or not cls._validate_image_data(img_data):
-                print(f"[LoadImageFromUrlNode] WARNING: Invalid image data. Returning blank 1024x1024 image.")
+                print(f"[LoadImageFromUrl] WARNING: Invalid image data. Returning blank 1024x1024 image.")
                 return Utils.create_fallback_image()
 
             img = Image.open(io.BytesIO(img_data)).convert("RGBA")
@@ -58,7 +58,7 @@ class LoadImageFromUrlNode(comfy_api_io.ComfyNode):
             return comfy_api_io.NodeOutput(img_tensor)
 
         except Exception as ex:
-            print(f"[LoadImageFromUrlNode] ERROR: {ex}")
+            print(f"[LoadImageFromUrl] ERROR: {ex}")
             import traceback
             traceback.print_exc()
 
@@ -71,12 +71,12 @@ class LoadImageFromUrlNode(comfy_api_io.ComfyNode):
 
         # ファイルサイズチェック
         if len(img_data) > MAX_SIZE:
-            print(f"[LoadImageFromUrlNode] WARNING: Image size {len(img_data)} bytes exceeds 10MB limit")
+            print(f"[LoadImageFromUrl] WARNING: Image size {len(img_data)} bytes exceeds 10MB limit")
             return False
 
         # 画像フォーマットチェック（マジックナンバー）
         if len(img_data) < 4:
-            print(f"[LoadImageFromUrlNode] WARNING: Image data too small: {len(img_data)} bytes")
+            print(f"[LoadImageFromUrl] WARNING: Image data too small: {len(img_data)} bytes")
             return False
 
         # 既知の画像フォーマットのマジックナンバーをチェック
@@ -90,12 +90,12 @@ class LoadImageFromUrlNode(comfy_api_io.ComfyNode):
         is_valid_format = False
         for magic, fmt in magic_numbers:
             if img_data.startswith(magic):
-                print(f"[LoadImageFromUrlNode] Valid {fmt} image detected ({len(img_data)} bytes)")
+                print(f"[LoadImageFromUrl] Valid {fmt} image detected ({len(img_data)} bytes)")
                 is_valid_format = True
                 break
 
         if not is_valid_format:
-            print(f"[LoadImageFromUrlNode] WARNING: Unknown or unsupported image format")
+            print(f"[LoadImageFromUrl] WARNING: Unknown or unsupported image format")
             return False
 
         # PIL で開けるかテスト
@@ -103,5 +103,5 @@ class LoadImageFromUrlNode(comfy_api_io.ComfyNode):
             Image.open(io.BytesIO(img_data)).verify()
             return True
         except Exception as e:
-            print(f"[LoadImageFromUrlNode] WARNING: Image verification failed: {e}")
+            print(f"[LoadImageFromUrl] WARNING: Image verification failed: {e}")
             return False
