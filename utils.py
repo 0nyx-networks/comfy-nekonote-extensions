@@ -1,11 +1,20 @@
 import io
 import numpy as np
+import tomllib
+from pathlib import Path
 
 from PIL import Image
 from comfy_api.latest import io as comfy_api_io # pyright: ignore[reportMissingImports]
 import torch # pyright: ignore[reportMissingImports]
 
 class Utils:
+    @classmethod
+    def get_version(cls) -> str:
+        pyproject_path = Path(__file__).parent / "pyproject.toml"
+        with open(pyproject_path, "rb") as fp:
+            data = tomllib.load(fp)
+        return data["project"]["version"]
+
     @classmethod
     def tensor_to_image(cls, image: torch.Tensor) -> Image.Image:
         arr = image.detach().cpu().numpy()
