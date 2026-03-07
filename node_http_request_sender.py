@@ -72,8 +72,8 @@ class HttpRequestSender(comfy_api_io.ComfyNode):
                 comfy_api_io.Combo.Input(
                     id="send_image_format",
                     display_name="Send Image Format",
-                    default="PNG",
-                    options=["PNG", "WEBP"],
+                    default="WEBP",
+                    options=["WEBP", "PNG"],
                     optional=True,
                 ),
                 comfy_api_io.String.Input(
@@ -132,7 +132,7 @@ class HttpRequestSender(comfy_api_io.ComfyNode):
                 cookies_json: str,
                 timeout: int,
                 send_image: torch.Tensor = None,
-                send_image_format: str = "PNG",
+                send_image_format: str = "WEBP",
                 multipart_field_name_in_image: str = "upload_image",
                 multipart_field_name_in_body: str = "metadata",
                 send_image_enabled: bool = False,
