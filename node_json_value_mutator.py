@@ -67,7 +67,11 @@ class JsonValueMutator(comfy_api_io.ComfyNode):
 
         # Perform JSON manipulation or processing here
         if append_key:
-            input_json[append_key] = append_value
+            try:
+                input_json[append_key] = json.loads(append_value)
+            except json.JSONDecodeError as ex:
+                print(f"[JsonValueMutator] WARNING: Invalid JSON for value: {ex}")
+                input_json[append_key] = append_value
 
         output_string: str = ""
         if pretty_enabled:
