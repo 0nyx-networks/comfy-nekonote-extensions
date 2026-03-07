@@ -46,7 +46,7 @@ class ConvertCsvToJson(comfy_api_io.ComfyNode):
                 **kwargs
                 ) -> comfy_api_io.NodeOutput:
         try:
-            input_csv = list(csv.DictReader(input_string.splitlines()))
+            input_csv = list(csv.reader(input_string.splitlines()))
 
             output_string: str = ""
             if pretty_enabled:
