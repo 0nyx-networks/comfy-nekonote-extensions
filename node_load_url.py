@@ -16,7 +16,7 @@ class LoadImageFromUrlNode(comfy_api_io.ComfyNode):
         return comfy_api_io.Schema(
             node_id="LoadImageFromUrlNode",
             display_name="Load Image From URL Node",
-            category="NEKONOTE/Utils",
+            category="NEKONOTE/Load",
             is_output_node=True,
             inputs=[
                 comfy_api_io.String.Input("image_url",
