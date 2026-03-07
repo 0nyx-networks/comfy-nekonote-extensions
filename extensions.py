@@ -3,6 +3,7 @@ from comfy_api.latest import ComfyExtension, io as comfy_api_io # pyright: ignor
 class ComfyNekonoteExtensions(ComfyExtension):
     async def get_node_list(self) -> list[type[comfy_api_io.ComfyNode]]:
         from .node_calculate_optimize_resolution import CalculateOptimizeResolution
+        from .node_http_request_sender import HttpRequestSender
         from .node_load_image_from_url import LoadImageFromUrl
         from .node_load_image_info_from_file import LoadImageInfoFromFile
         from .node_primitive_combo_list import PrimitiveComboList
@@ -10,6 +11,7 @@ class ComfyNekonoteExtensions(ComfyExtension):
         from .node_resize import ResizeImage
         return [
                     CalculateOptimizeResolution,
+                    HttpRequestSender,
                     LoadImageFromUrl,
                     LoadImageInfoFromFile,
                     PrimitiveComboList,
