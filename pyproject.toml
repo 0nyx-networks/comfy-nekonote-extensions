@@ -2,9 +2,13 @@
 [project]
 name = "comfy-nekonote-extensions"
 description = "Comfy NEKONOTE extensions"
-version = "0.0.2"
+version = "0.1.0"
 license = { file = "LICENSE" }
-dependencies  = []
+dependencies  = [
+    "httpx>=0.28.1",
+    "numpy>=2.4.2",
+    "pillow>=12.1.1",
+]
 
 [project.urls]
 Repository = "https://github.com/0nyx-networks/comfy-nekonote-extensions"

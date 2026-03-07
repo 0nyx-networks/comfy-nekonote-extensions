@@ -8,3 +8,8 @@ wheels/
 
 # Virtual environments
 .venv
+
+# IDE/editor specific files
+.vscode/
+
+uv.lock
