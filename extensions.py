@@ -3,6 +3,7 @@ from comfy_api.latest import ComfyExtension, io as comfy_api_io # pyright: ignor
 class ComfyNekonoteExtensions(ComfyExtension):
     async def get_node_list(self) -> list[type[comfy_api_io.ComfyNode]]:
         from .node_calculate_optimize_resolution import CalculateOptimizeResolution
+        from .node_convert_csv_to_json import ConvertCsvToJson
         from .node_convert_json_to_yaml import ConvertJsonToYaml
         from .node_convert_yaml_to_json import ConvertYamlToJson
         from .node_csv_list_appender import CsvListAppender
@@ -17,6 +18,7 @@ class ComfyNekonoteExtensions(ComfyExtension):
 
         return [
                     CalculateOptimizeResolution,
+                    ConvertCsvToJson,
                     ConvertJsonToYaml,
                     ConvertYamlToJson,
                     CsvListAppender,
