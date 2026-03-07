@@ -9,7 +9,7 @@ import piexif
 from comfy_api.latest import io as comfy_api_io, ui as comfy_api_ui # pyright: ignore[reportMissingImports]
 import folder_paths # pyright: ignore[reportMissingImports]
 
-class LoadImageInfo(comfy_api_io.ComfyNode):
+class LoadImageInfoFromFile(comfy_api_io.ComfyNode):
     @classmethod
     def define_schema(cls) -> comfy_api_io.Schema:
         input_dir = folder_paths.get_input_directory()
@@ -17,8 +17,8 @@ class LoadImageInfo(comfy_api_io.ComfyNode):
         files = folder_paths.filter_files_content_types(files, ["image"])
 
         return comfy_api_io.Schema(
-            node_id="LoadImageInfo",
-            display_name="Load image info",
+            node_id="LoadImageInfoFromFile",
+            display_name="Load image info from file",
             category="NEKONOTE/Load",
             inputs=[
                 comfy_api_io.Combo.Input("image_file",
@@ -86,7 +86,7 @@ class LoadImageInfo(comfy_api_io.ComfyNode):
 
 
         image_path = folder_paths.get_annotated_filepath(image_file)
-        print(f"[LoadImageInfo] Loading image info from: {image_path}")
+        print(f"[LoadImageInfoFromFile] Loading image info from: {image_path}")
 
         image = Image.open(image_path)
 
@@ -160,8 +160,8 @@ class LoadImageInfo(comfy_api_io.ComfyNode):
 
 
         # デバッグ/確認用に出力
-        print(f"[LoadImageInfo] Positive Prompt: {positive_prompt}")
-        print(f"[LoadImageInfo] Negative Prompt: {negative_prompt}")
-        print(f"[LoadImageInfo] Metadata: {metadata_text}")
+        print(f"[LoadImageInfoFromFile] Positive Prompt: {positive_prompt}")
+        print(f"[LoadImageInfoFromFile] Negative Prompt: {negative_prompt}")
+        print(f"[LoadImageInfoFromFile] Metadata: {metadata_text}")
 
         return comfy_api_io.NodeOutput(positive_prompt, negative_prompt, metadata_text)
