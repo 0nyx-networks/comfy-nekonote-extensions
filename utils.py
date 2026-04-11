@@ -1,4 +1,6 @@
 import io
+import json
+import struct
 import numpy as np
 import tomllib
 from pathlib import Path
@@ -56,3 +58,61 @@ class Utils:
         img_array = np.array(blank_img).astype(np.float32) / 255.0
         img_tensor = torch.from_numpy(img_array).unsqueeze(0)
         return comfy_api_io.NodeOutput(img_tensor, width, height)
+
+
+    @classmethod
+    def _validate_safetensors_data(cls, file_data: bytes) -> bool:
+        """
+        safetensors形式のバリデーション
+
+        safetensorsファイル構造：
+        - 最初の8バイト：ヘッダーサイズ（Little Endian uint64）
+        - その後：ヘッダー（JSON形式）
+        - その後：実際の重みデータ
+        """
+        try:
+            # ファイルサイズは最低でも8バイト必要
+            if len(file_data) < 8:
+                print(f"Validation: File too small (< 8 bytes)")
+                return False
+
+            # 最初の8バイトからヘッダーサイズをパース（Little Endian）
+            header_size = struct.unpack("<Q", file_data[:8])[0]
+
+            # ヘッダーサイズが論理的か確認
+            # ヘッダーサイズは大きすぎないはず（例：100MB以上はありえない）
+            if header_size > 100_000_000:  # 100MB
+                print(f"Validation: Header size too large ({header_size})")
+                return False
+
+            # ファイルにヘッダーが完全に収まっているか確認
+            if len(file_data) < 8 + header_size:
+                print(f"Validation: File too small for header (size: {len(file_data)}, expected: {8 + header_size})")
+                return False
+
+            # ヘッダー部分を抽出
+            header_bytes = file_data[8:8 + header_size]
+
+            # ヘッダーをJSONとしてパースできるか試す
+            header_json = json.loads(header_bytes.decode("utf-8"))
+
+            # ヘッダーが辞書型か確認
+            if not isinstance(header_json, dict):
+                print(f"Validation: Header is not a valid dictionary")
+                return False
+
+            print(f"Validation: Valid safetensors format detected")
+            return True
+
+        except struct.error as e:
+            print(f"Validation: Invalid struct format - {e}")
+            return False
+        except json.JSONDecodeError as e:
+            print(f"Validation: Invalid JSON header - {e}")
+            return False
+        except UnicodeDecodeError as e:
+            print(f"Validation: Invalid UTF-8 in header - {e}")
+            return False
+        except Exception as e:
+            print(f"Validation: Unexpected error - {e}")
+            return False

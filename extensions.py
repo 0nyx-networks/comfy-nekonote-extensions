@@ -12,9 +12,11 @@ class ComfyNekonoteExtensions(ComfyExtension):
         from .node_json_value_mutator import JsonValueMutator
         from .node_load_image_from_url import LoadImageFromUrl
         from .node_load_image_info_from_file import LoadImageInfoFromFile
+        from .node_load_lora_from_file import LoadLoraFromFile
+        from .node_load_safetensors_from_url import LoadSafetensorsFromUrl
         from .node_primitive_combo_list import PrimitiveComboList
         from .node_primitive_int_step import PrimitiveIntStep
-        from .node_resize import ResizeImage
+        from .node_resize_image import ResizeImage
 
         return [
                     CalculateOptimizeResolution,
@@ -27,6 +29,8 @@ class ComfyNekonoteExtensions(ComfyExtension):
                     JsonValueMutator,
                     LoadImageFromUrl,
                     LoadImageInfoFromFile,
+                    LoadLoraFromFile,
+                    LoadSafetensorsFromUrl,
                     PrimitiveComboList,
                     PrimitiveIntStep,
                     ResizeImage,
