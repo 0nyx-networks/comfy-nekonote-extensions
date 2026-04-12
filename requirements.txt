@@ -3,3 +3,4 @@ numpy
 piexif
 pillow
 pyyaml
+diskcache

@@ -1,16 +1,35 @@
 import tempfile
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 import hashlib
 
 from comfy_api.latest import io as comfy_api_io # pyright: ignore[reportMissingImports]
 import folder_paths # pyright: ignore[reportMissingImports]
 import httpx
 import shutil
+import diskcache
 
 from .utils import Utils
 
 class LoadSafetensorsFromUrl(comfy_api_io.ComfyNode):
+    # キャッシュのサイズ制限: 2GB
+    CACHE_SIZE_LIMIT = 2 * 1024 * 1024 * 1024  # 2GB in bytes
+
+    @classmethod
+    def _get_cache_dir(cls, model_type: str) -> Path:
+        """モデルタイプ別のキャッシュディレクトリを取得"""
+        path_dir: str = folder_paths.folder_names_and_paths[model_type][0][0]
+        cache_dir = Path(path_dir) / ".safetensors_url_cache"
+        return cache_dir
+
+    @classmethod
+    def _get_cache(cls, model_type: str) -> diskcache.Cache:
+        """キャッシュディレクトリを初期化してCacheオブジェクトを返す"""
+        cache_dir = cls._get_cache_dir(model_type)
+        cache_dir.parent.mkdir(parents=True, exist_ok=True)
+        cache = diskcache.Cache(str(cache_dir), size_limit=cls.CACHE_SIZE_LIMIT)
+        return cache
+
     @classmethod
     def define_schema(cls) -> comfy_api_io.Schema:
         return comfy_api_io.Schema(
@@ -46,23 +65,34 @@ class LoadSafetensorsFromUrl(comfy_api_io.ComfyNode):
     def execute(cls, safetensors_url: str, model_type: str, **kwargs) -> Any:
         try:
             # 最初のディレクトリを使う場合
-            path_dir: str = folder_paths.folder_names_and_paths[model_type][0][0]
+            path_dir: str = cast(str, folder_paths.folder_names_and_paths[model_type][0][0])
+
+            # キャッシュを確認
+            cache = cls._get_cache(model_type)
+            if safetensors_url in cache:
+                cached_file_path: str = cast(str, cache[safetensors_url])
+                if Path(cached_file_path).exists():
+                    print(f"[LoadSafetensorsFromUrl] Using cached file: {cached_file_path}")
+                    return comfy_api_io.NodeOutput(Path(cached_file_path).name)
+                else:
+                    # キャッシュエントリは存在するがファイルが削除されている場合
+                    print(f"[LoadSafetensorsFromUrl] Cached file not found, re-downloading: {cached_file_path}")
+                    del cache[safetensors_url]
+
+            # URLスキームの確認
+            if not (safetensors_url.startswith("http://") or safetensors_url.startswith("https://")):
+                print(f"[LoadSafetensorsFromUrl] ERROR: Unsupported URL scheme.")
+                return comfy_api_io.NodeOutput("")
 
             # 一時ファイルを使用してダウンロード
             with tempfile.NamedTemporaryFile(delete=False, suffix=".safetensors") as tmp_file:
                 temp_file_path = Path(tmp_file.name)
                 try:
-                    # URLからSafetensorsファイルを取得
-                    if safetensors_url.startswith("http://") or safetensors_url.startswith("https://"):
-                        # ストリーミングダウンロード
-                        with httpx.stream("GET", safetensors_url) as response:
-                            response.raise_for_status()
-                            for chunk in response.iter_bytes(chunk_size=8192):
-                                tmp_file.write(chunk)
-
-                    else:
-                        print(f"[LoadSafetensorsFromUrl] ERROR: Unsupported URL scheme.")
-                        return comfy_api_io.NodeOutput("")
+                    # ストリーミングダウンロード
+                    with httpx.stream("GET", safetensors_url) as response:
+                        response.raise_for_status()
+                        for chunk in response.iter_bytes(chunk_size=8192):
+                            tmp_file.write(chunk)
 
                     tmp_file.flush()
 
@@ -87,10 +117,15 @@ class LoadSafetensorsFromUrl(comfy_api_io.ComfyNode):
 
                     if save_path_obj.exists():
                         print(f"[LoadSafetensorsFromUrl] File already exists at: {save_path_obj}")
+                        # キャッシュに保存
+                        cache[safetensors_url] = str(save_path_obj)
                         return comfy_api_io.NodeOutput(save_path_obj.name)
 
                     save_path_obj.parent.mkdir(parents=True, exist_ok=True)
                     shutil.move(str(temp_file_path), str(save_path_obj))
+
+                    # ダウンロード完了後、キャッシュに保存
+                    cache[safetensors_url] = str(save_path_obj)
 
                     print(f"[LoadSafetensorsFromUrl] Successfully saved safetensors file to: {save_path_obj}")
                     return comfy_api_io.NodeOutput(save_path_obj.name)
