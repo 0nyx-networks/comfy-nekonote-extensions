@@ -12,8 +12,8 @@ import diskcache
 from .utils import Utils
 
 class LoadSafetensorsFromUrl(comfy_api_io.ComfyNode):
-    # キャッシュのサイズ制限: 2GB
-    CACHE_SIZE_LIMIT = 2 * 1024 * 1024 * 1024  # 2GB in bytes
+    # キャッシュのサイズ制限: 10GB
+    CACHE_SIZE_LIMIT = 10 * 1024 * 1024 * 1024  # 10GB in bytes
 
     @classmethod
     def _get_cache_dir(cls, model_type: str) -> Path:
