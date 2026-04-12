@@ -1,6 +1,7 @@
 import tempfile
 from pathlib import Path
 from typing import Any
+import hashlib
 
 from comfy_api.latest import io as comfy_api_io # pyright: ignore[reportMissingImports]
 import folder_paths # pyright: ignore[reportMissingImports]
@@ -19,11 +20,6 @@ class LoadSafetensorsFromUrl(comfy_api_io.ComfyNode):
             is_output_node=False,
             inputs=[
                 comfy_api_io.String.Input("safetensors_url",
-                    default="",
-                    multiline=False,
-                    optional=False
-                ),
-                comfy_api_io.String.Input("file_name",
                     default="",
                     multiline=False,
                     optional=False
@@ -47,17 +43,10 @@ class LoadSafetensorsFromUrl(comfy_api_io.ComfyNode):
         )
 
     @classmethod
-    def execute(cls, safetensors_url: str, file_name: str, model_type: str, **kwargs) -> Any:
+    def execute(cls, safetensors_url: str, model_type: str, **kwargs) -> Any:
         try:
             # 最初のディレクトリを使う場合
             path_dir: str = folder_paths.folder_names_and_paths[model_type][0][0]
-
-            # 最終パスを構築
-            save_path_obj = Path(path_dir, file_name)
-
-            if save_path_obj.exists():
-                print(f"[LoadSafetensorsFromUrl] File already exists at: {save_path_obj}")
-                return comfy_api_io.NodeOutput(save_path_obj.name)
 
             # 一時ファイルを使用してダウンロード
             with tempfile.NamedTemporaryFile(delete=False, suffix=".safetensors") as tmp_file:
@@ -88,6 +77,17 @@ class LoadSafetensorsFromUrl(comfy_api_io.ComfyNode):
                     if not Utils._validate_safetensors_data(file_data):
                         print(f"[LoadSafetensorsFromUrl] ERROR: Invalid safetensors format.")
                         return comfy_api_io.NodeOutput("")
+
+                    # SHA3-512でハッシュ値を計算してファイル名として使用
+                    sha3_hash = hashlib.sha3_512(file_data).hexdigest()
+                    file_size = len(file_data)
+                    print(f"[LoadSafetensorsFromUrl] Downloaded file size: {file_size} bytes, SHA3-512: {sha3_hash}")
+                    file_name = f"download_{sha3_hash}_{file_size}.safetensors"
+                    save_path_obj = Path(path_dir, file_name)
+
+                    if save_path_obj.exists():
+                        print(f"[LoadSafetensorsFromUrl] File already exists at: {save_path_obj}")
+                        return comfy_api_io.NodeOutput(save_path_obj.name)
 
                     save_path_obj.parent.mkdir(parents=True, exist_ok=True)
                     shutil.move(str(temp_file_path), str(save_path_obj))
