@@ -41,7 +41,7 @@ class LoadSafetensorsFromMultipleUrls(comfy_api_io.ComfyNode):
             inputs=[
                 comfy_api_io.String.Input("entries_json",
                     display_name="URLs (JSON list[dict])",
-                    default='[{"name": "", "strength_model": 1.0, "strength_clip": 1.0}]',
+                    default='[{"url": "", "strength_model": 1.0, "strength_clip": 1.0}]',
                     multiline=True,
                     optional=False
                 ),
@@ -89,13 +89,13 @@ class LoadSafetensorsFromMultipleUrls(comfy_api_io.ComfyNode):
             if isinstance(entry, str):
                 # 後方互換性: 文字列の場合
                 entry = {
-                    "name": entry,
+                    "url": entry,
                     "strength_model": 1.0,
                     "strength_clip": 1.0
                 }
             elif isinstance(entry, dict):
                 # 必須フィールドのチェック
-                required_fields = ["name", "strength_model", "strength_clip"]
+                required_fields = ["url", "strength_model", "strength_clip"]
                 missing_fields = [field for field in required_fields if field not in entry]
                 if missing_fields:
                     print(f"[LoadSafetensorsFromMultipleUrls] URL[{idx}] WARNING: Missing fields {missing_fields}. Skipping.")
@@ -104,7 +104,7 @@ class LoadSafetensorsFromMultipleUrls(comfy_api_io.ComfyNode):
                 print(f"[LoadSafetensorsFromMultipleUrls] URL[{idx}] WARNING: Invalid entry format. Skipping.")
                 continue
 
-            safetensors_url: str = str(entry.get("name", "")).strip()
+            safetensors_url: str = str(entry.get("url", "")).strip()
             try:
                 strength_model: float = float(entry.get("strength_model", 1.0))
                 strength_clip: float = float(entry.get("strength_clip", 1.0))
