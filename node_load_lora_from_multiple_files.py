@@ -59,11 +59,11 @@ class LoadLoraFromMultipleFiles(comfy_api_io.ComfyNode):
                 print(f"[LoadLoraFromMultipleFiles] ERROR: Each item in lora_params should be a dict. Skipping invalid item: {entry}")
                 continue
 
-            if any(key not in entry for key in ["name","strength_model", "strength_clip"]):
-                print(f"[LoadLoraFromMultipleFiles] ERROR: Each lora_param dict must contain 'name', 'strength_model', and 'strength_clip' keys. Skipping invalid item: {entry}")
+            if any(key not in entry for key in ["file_name","strength_model", "strength_clip"]):
+                print(f"[LoadLoraFromMultipleFiles] ERROR: Each lora_param dict must contain 'file_name', 'strength_model', and 'strength_clip' keys. Skipping invalid item: {entry}")
                 continue
 
-            file_name = entry.get("name")
+            file_name = entry.get("file_name")
             strength_model = entry.get("strength_model", 1.0)
             strength_clip = entry.get("strength_clip", 1.0)
             try:
@@ -74,7 +74,7 @@ class LoadLoraFromMultipleFiles(comfy_api_io.ComfyNode):
                 continue
 
             if not file_name:
-                print("[LoadLoraFromMultipleFiles] ERROR: LoRA name is missing in lora_params.")
+                print("[LoadLoraFromMultipleFiles] ERROR: LoRA file_name is missing in lora_params.")
                 continue
 
             # folder_pathsからフルパスを解決
