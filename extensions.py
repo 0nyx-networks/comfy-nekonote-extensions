@@ -13,6 +13,8 @@ class ComfyNekonoteExtensions(ComfyExtension):
         from .node_load_image_from_url import LoadImageFromUrl
         from .node_load_image_info_from_file import LoadImageInfoFromFile
         from .node_load_lora_from_file import LoadLoraFromFile
+        from .node_load_lora_from_multiple_files import LoadLoraFromMultipleFiles
+        from .node_load_safetensors_from_multiple_urls import LoadSafetensorsFromMultipleUrls
         from .node_load_safetensors_from_url import LoadSafetensorsFromUrl
         from .node_primitive_combo_list import PrimitiveComboList
         from .node_primitive_int_step import PrimitiveIntStep
@@ -30,6 +32,8 @@ class ComfyNekonoteExtensions(ComfyExtension):
                     LoadImageFromUrl,
                     LoadImageInfoFromFile,
                     LoadLoraFromFile,
+                    LoadLoraFromMultipleFiles,
+                    LoadSafetensorsFromMultipleUrls,
                     LoadSafetensorsFromUrl,
                     PrimitiveComboList,
                     PrimitiveIntStep,

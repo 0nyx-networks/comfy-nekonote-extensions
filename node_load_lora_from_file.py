@@ -17,7 +17,7 @@ class LoadLoraFromFile(comfy_api_io.ComfyNode):
                 comfy_api_io.Model.Input("model"),
                 comfy_api_io.Clip.Input("clip"),
                 comfy_api_io.String.Input(
-                    "lora_name",
+                    "file_name",
                     force_input=True,   # ← ワイヤー接続を強制（ドロップダウンなし）
                 ),
                 comfy_api_io.Float.Input("strength_model",
@@ -44,20 +44,20 @@ class LoadLoraFromFile(comfy_api_io.ComfyNode):
         cls,
         model: Any,
         clip: Any,
-        lora_name: str,
+        file_name: str,
         strength_model: float,
         strength_clip: float,
         **kwargs
     ) -> Any:
-        if not lora_name:
-            print("[LoadLoraFromFile] ERROR: lora_name is empty.")
+        if not file_name:
+            print("[LoadLoraFromFile] ERROR: file_name is empty.")
             return comfy_api_io.NodeOutput(model, clip)
 
         # folder_pathsからフルパスを解決
-        lora_path = folder_paths.get_full_path("loras", lora_name)
+        lora_path = folder_paths.get_full_path("loras", file_name)
 
         if lora_path is None:
-            print(f"[LoadLoraFromFile] ERROR: LoRA not found: {lora_name}")
+            print(f"[LoadLoraFromFile] ERROR: LoRA not found: {file_name}")
             return comfy_api_io.NodeOutput(model, clip)
 
         try:
@@ -65,7 +65,7 @@ class LoadLoraFromFile(comfy_api_io.ComfyNode):
             model_patched, clip_patched = comfy.sd.load_lora_for_models(
                 model, clip, lora, strength_model, strength_clip
             )
-            print(f"[LoadLoraFromFile] Successfully loaded LoRA: {lora_name}")
+            print(f"[LoadLoraFromFile] Successfully loaded LoRA: {file_name}")
             return comfy_api_io.NodeOutput(model_patched, clip_patched)
 
         except Exception as ex:
