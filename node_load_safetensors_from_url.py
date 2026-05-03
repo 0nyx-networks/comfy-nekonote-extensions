@@ -58,7 +58,7 @@ class LoadSafetensorsFromUrl(comfy_api_io.ComfyNode):
                 comfy_api_io.Boolean.Input(
                     id="raise_error_on_failure",
                     display_name="Raise Error on Failure",
-                    default=True,
+                    default=False,
                     optional=True,
                 ),
             ],
@@ -68,7 +68,7 @@ class LoadSafetensorsFromUrl(comfy_api_io.ComfyNode):
         )
 
     @classmethod
-    def execute(cls, safetensors_url: str, model_type: str, raise_error_on_failure: bool = True, **kwargs) -> Any:
+    def execute(cls, safetensors_url: str, model_type: str, raise_error_on_failure: bool = False, **kwargs) -> Any:
         try:
             # 最初のディレクトリを使う場合
             path_dir: str = cast(str, folder_paths.folder_names_and_paths[model_type][0][0])

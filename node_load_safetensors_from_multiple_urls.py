@@ -60,7 +60,7 @@ class LoadSafetensorsFromMultipleUrls(comfy_api_io.ComfyNode):
                 comfy_api_io.Boolean.Input(
                     id="raise_error_on_failure",
                     display_name="Raise Error on Failure",
-                    default=True,
+                    default=False,
                     optional=True,
                 ),
             ],
@@ -70,7 +70,7 @@ class LoadSafetensorsFromMultipleUrls(comfy_api_io.ComfyNode):
         )
 
     @classmethod
-    def execute(cls, entries_json: str, model_type: str, raise_error_on_failure: bool = True, **kwargs) -> Any:
+    def execute(cls, entries_json: str, model_type: str, raise_error_on_failure: bool = False, **kwargs) -> Any:
         # JSONリストをパース
         try:
             urls_list = json.loads(entries_json)

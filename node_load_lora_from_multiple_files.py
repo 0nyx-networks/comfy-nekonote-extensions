@@ -27,7 +27,7 @@ class LoadLoraFromMultipleFiles(comfy_api_io.ComfyNode):
                 comfy_api_io.Boolean.Input(
                     id="raise_error_on_failure",
                     display_name="Raise Error on Failure",
-                    default=True,
+                    default=False,
                     optional=True,
                 ),
             ],
@@ -43,7 +43,7 @@ class LoadLoraFromMultipleFiles(comfy_api_io.ComfyNode):
         model: Any,
         clip: Any,
         lora_params_json: str,
-        raise_error_on_failure: bool = True,
+        raise_error_on_failure: bool = False,
         **kwargs
     ) -> Any:
         if not lora_params_json:
