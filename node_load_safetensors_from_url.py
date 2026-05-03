@@ -55,6 +55,12 @@ class LoadSafetensorsFromUrl(comfy_api_io.ComfyNode):
                     ],
                     optional=False,
                 ),
+                comfy_api_io.Boolean.Input(
+                    id="raise_error_on_failure",
+                    display_name="Raise Error on Failure",
+                    default=True,
+                    optional=True,
+                ),
             ],
             outputs=[
                 comfy_api_io.String.Output("file_name"),
@@ -62,7 +68,7 @@ class LoadSafetensorsFromUrl(comfy_api_io.ComfyNode):
         )
 
     @classmethod
-    def execute(cls, safetensors_url: str, model_type: str, **kwargs) -> Any:
+    def execute(cls, safetensors_url: str, model_type: str, raise_error_on_failure: bool = True, **kwargs) -> Any:
         try:
             # 最初のディレクトリを使う場合
             path_dir: str = cast(str, folder_paths.folder_names_and_paths[model_type][0][0])
@@ -82,6 +88,8 @@ class LoadSafetensorsFromUrl(comfy_api_io.ComfyNode):
             # URLスキームの確認
             if not (safetensors_url.startswith("http://") or safetensors_url.startswith("https://")):
                 print(f"[LoadSafetensorsFromUrl] ERROR: Unsupported URL scheme.")
+                if raise_error_on_failure:
+                    raise ValueError(f"Unsupported URL scheme: {safetensors_url}")
                 return comfy_api_io.NodeOutput("")
 
             # 一時ファイルを使用してダウンロード
@@ -89,7 +97,7 @@ class LoadSafetensorsFromUrl(comfy_api_io.ComfyNode):
                 temp_file_path = Path(tmp_file.name)
                 try:
                     # ストリーミングダウンロード
-                    with httpx.stream("GET", safetensors_url) as response:
+                    with httpx.stream("GET", safetensors_url, timeout=10) as response:
                         response.raise_for_status()
                         for chunk in response.iter_bytes(chunk_size=8192):
                             tmp_file.write(chunk)
@@ -102,10 +110,14 @@ class LoadSafetensorsFromUrl(comfy_api_io.ComfyNode):
 
                     if not file_data:
                         print(f"[LoadSafetensorsFromUrl] ERROR: No file data retrieved.")
+                        if raise_error_on_failure:
+                            raise ValueError(f"No file data retrieved for URL: {safetensors_url}")
                         return comfy_api_io.NodeOutput("")
 
                     if not Utils._validate_safetensors_data(file_data):
                         print(f"[LoadSafetensorsFromUrl] ERROR: Invalid safetensors format.")
+                        if raise_error_on_failure:
+                            raise ValueError(f"Invalid safetensors format for URL: {safetensors_url}")
                         return comfy_api_io.NodeOutput("")
 
                     # SHA3-512でハッシュ値を計算してファイル名として使用
@@ -137,7 +149,9 @@ class LoadSafetensorsFromUrl(comfy_api_io.ComfyNode):
 
         except Exception as ex:
             print(f"[LoadSafetensorsFromUrl] ERROR: {ex}")
-            import traceback
-            traceback.print_exc()
+            #import traceback
+            #traceback.print_exc()
+            if raise_error_on_failure:
+                raise ex
 
         return comfy_api_io.NodeOutput("")

@@ -57,6 +57,12 @@ class LoadSafetensorsFromMultipleUrls(comfy_api_io.ComfyNode):
                     ],
                     optional=False,
                 ),
+                comfy_api_io.Boolean.Input(
+                    id="raise_error_on_failure",
+                    display_name="Raise Error on Failure",
+                    default=True,
+                    optional=True,
+                ),
             ],
             outputs=[
                 comfy_api_io.String.Output("results_json"),
@@ -64,7 +70,7 @@ class LoadSafetensorsFromMultipleUrls(comfy_api_io.ComfyNode):
         )
 
     @classmethod
-    def execute(cls, entries_json: str, model_type: str, **kwargs) -> Any:
+    def execute(cls, entries_json: str, model_type: str, raise_error_on_failure: bool = True, **kwargs) -> Any:
         # JSONリストをパース
         try:
             urls_list = json.loads(entries_json)
@@ -72,10 +78,14 @@ class LoadSafetensorsFromMultipleUrls(comfy_api_io.ComfyNode):
                 urls_list = [urls_list]
         except json.JSONDecodeError:
             print(f"[LoadSafetensorsFromMultipleUrls] ERROR: Invalid JSON format.")
+            if raise_error_on_failure:
+                raise ValueError("Invalid JSON format.")
             return comfy_api_io.NodeOutput(json.dumps([]))
 
         if not urls_list:
             print(f"[LoadSafetensorsFromMultipleUrls] ERROR: URLs list is empty.")
+            if raise_error_on_failure:
+                raise ValueError("URLs list is empty.")
             return comfy_api_io.NodeOutput(json.dumps([]))
 
         # 最初のディレクトリを使う場合
@@ -120,6 +130,8 @@ class LoadSafetensorsFromMultipleUrls(comfy_api_io.ComfyNode):
             # URLスキームの確認
             if not (safetensors_url.startswith("http://") or safetensors_url.startswith("https://")):
                 print(f"[LoadSafetensorsFromMultipleUrls] ERROR: Unsupported URL scheme at index {idx}: {safetensors_url}")
+                if raise_error_on_failure:
+                    raise ValueError(f"Unsupported URL scheme at index {idx}: {safetensors_url}")
                 continue
 
             # キャッシュを確認
@@ -145,7 +157,7 @@ class LoadSafetensorsFromMultipleUrls(comfy_api_io.ComfyNode):
                 try:
                     # ストリーミングダウンロード
                     print(f"[LoadSafetensorsFromMultipleUrls] URL[{idx}] Downloading: {safetensors_url}")
-                    with httpx.stream("GET", safetensors_url) as response:
+                    with httpx.stream("GET", safetensors_url, timeout=10) as response:
                         response.raise_for_status()
                         for chunk in response.iter_bytes(chunk_size=8192):
                             tmp_file.write(chunk)
@@ -158,10 +170,14 @@ class LoadSafetensorsFromMultipleUrls(comfy_api_io.ComfyNode):
 
                     if not file_data:
                         print(f"[LoadSafetensorsFromMultipleUrls] URL[{idx}] ERROR: No file data retrieved.")
+                        if raise_error_on_failure:
+                            raise ValueError(f"No file data retrieved for URL at index {idx}: {safetensors_url}")
                         continue
 
                     if not Utils._validate_safetensors_data(file_data):
                         print(f"[LoadSafetensorsFromMultipleUrls] URL[{idx}] ERROR: Invalid safetensors format.")
+                        if raise_error_on_failure:
+                            raise ValueError(f"Invalid safetensors format for URL at index {idx}: {safetensors_url}")
                         continue
 
                     # SHA3-512でハッシュ値を計算してファイル名として使用
@@ -199,8 +215,10 @@ class LoadSafetensorsFromMultipleUrls(comfy_api_io.ComfyNode):
 
                 except Exception as ex:
                     print(f"[LoadSafetensorsFromMultipleUrls] URL[{idx}] ERROR: {ex}")
-                    import traceback
-                    traceback.print_exc()
+                    #import traceback
+                    #traceback.print_exc()
+                    if raise_error_on_failure:
+                        raise ex
                 finally:
                     # 一時ファイルがまだ存在する場合は削除
                     if temp_file_path.exists():
