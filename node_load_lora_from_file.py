@@ -32,6 +32,12 @@ class LoadLoraFromFile(comfy_api_io.ComfyNode):
                     max=100.0,
                     step=0.01,
                 ),
+                comfy_api_io.Boolean.Input(
+                    id="raise_error_on_failure",
+                    display_name="Raise Error on Failure",
+                    default=True,
+                    optional=True,
+                ),
             ],
             outputs=[
                 comfy_api_io.Model.Output("model"),
@@ -47,10 +53,13 @@ class LoadLoraFromFile(comfy_api_io.ComfyNode):
         file_name: str,
         strength_model: float,
         strength_clip: float,
+        raise_error_on_failure: bool = True,
         **kwargs
     ) -> Any:
         if not file_name:
             print("[LoadLoraFromFile] ERROR: file_name is empty.")
+            if raise_error_on_failure:
+                raise ValueError("file_name is empty.")
             return comfy_api_io.NodeOutput(model, clip)
 
         # folder_pathsからフルパスを解決
@@ -58,6 +67,8 @@ class LoadLoraFromFile(comfy_api_io.ComfyNode):
 
         if lora_path is None:
             print(f"[LoadLoraFromFile] ERROR: LoRA not found: {file_name}")
+            if raise_error_on_failure:
+                raise FileNotFoundError(f"LoRA not found: {file_name}")
             return comfy_api_io.NodeOutput(model, clip)
 
         try:
@@ -72,4 +83,6 @@ class LoadLoraFromFile(comfy_api_io.ComfyNode):
             print(f"[LoadLoraFromFile] ERROR: {ex}")
             import traceback
             traceback.print_exc()
+            if raise_error_on_failure:
+                raise ex
             return comfy_api_io.NodeOutput(model, clip)

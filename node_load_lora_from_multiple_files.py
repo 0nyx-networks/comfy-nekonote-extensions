@@ -24,6 +24,12 @@ class LoadLoraFromMultipleFiles(comfy_api_io.ComfyNode):
                     optional=False,
                     force_input=True,   # ← ワイヤー接続を強制（ドロップダウンなし）
                 ),
+                comfy_api_io.Boolean.Input(
+                    id="raise_error_on_failure",
+                    display_name="Raise Error on Failure",
+                    default=True,
+                    optional=True,
+                ),
             ],
             outputs=[
                 comfy_api_io.Model.Output("model"),
@@ -37,16 +43,21 @@ class LoadLoraFromMultipleFiles(comfy_api_io.ComfyNode):
         model: Any,
         clip: Any,
         lora_params_json: str,
+        raise_error_on_failure: bool = True,
         **kwargs
     ) -> Any:
         if not lora_params_json:
             print("[LoadLoraFromMultipleFiles] ERROR: lora_params_json is empty.")
+            if raise_error_on_failure:
+                raise ValueError("lora_params_json is empty.")
             return comfy_api_io.NodeOutput(model, clip)
 
         try:
             lora_params = json.loads(lora_params_json)
         except json.JSONDecodeError as ex:
             print(f"[LoadLoraFromMultipleFiles] ERROR: Failed to parse lora_params_json: {ex}")
+            if raise_error_on_failure:
+                raise ex
             return comfy_api_io.NodeOutput(model, clip)
 
         if not lora_params:
@@ -57,10 +68,14 @@ class LoadLoraFromMultipleFiles(comfy_api_io.ComfyNode):
         for entry in lora_params:
             if not isinstance(entry, dict):
                 print(f"[LoadLoraFromMultipleFiles] ERROR: Each item in lora_params should be a dict. Skipping invalid item: {entry}")
+                if raise_error_on_failure:
+                    raise ValueError(f"Each item in lora_params should be a dict. Invalid item: {entry}")
                 continue
 
             if any(key not in entry for key in ["file_name","strength_model", "strength_clip"]):
                 print(f"[LoadLoraFromMultipleFiles] ERROR: Each lora_param dict must contain 'file_name', 'strength_model', and 'strength_clip' keys. Skipping invalid item: {entry}")
+                if raise_error_on_failure:
+                    raise ValueError(f"Each lora_param dict must contain 'file_name', 'strength_model', and 'strength_clip' keys. Invalid item: {entry}")
                 continue
 
             file_name = entry.get("file_name")
@@ -71,10 +86,14 @@ class LoadLoraFromMultipleFiles(comfy_api_io.ComfyNode):
                 strength_clip = float(strength_clip)
             except (TypeError, ValueError) as ex:
                 print(f"[LoadLoraFromMultipleFiles] ERROR: 'strength_model' and 'strength_clip' must be convertible to float. Skipping invalid item: {entry}. Error: {ex}")
+                if raise_error_on_failure:
+                    raise ValueError(f"'strength_model' and 'strength_clip' must be convertible to float. Invalid item: {entry}. Error: {ex}")
                 continue
 
             if not file_name:
                 print("[LoadLoraFromMultipleFiles] ERROR: LoRA file_name is missing in lora_params.")
+                if raise_error_on_failure:
+                    raise ValueError("LoRA file_name is missing in lora_params.")
                 continue
 
             # folder_pathsからフルパスを解決
@@ -82,6 +101,8 @@ class LoadLoraFromMultipleFiles(comfy_api_io.ComfyNode):
 
             if lora_path is None:
                 print(f"[LoadLoraFromMultipleFiles] ERROR: LoRA not found: {file_name}")
+                if raise_error_on_failure:
+                    raise FileNotFoundError(f"LoRA not found: {file_name}")
                 continue
 
             try:
@@ -93,6 +114,8 @@ class LoadLoraFromMultipleFiles(comfy_api_io.ComfyNode):
 
             except Exception as ex:
                 print(f"[LoadLoraFromMultipleFiles] ERROR: {ex}")
+                if raise_error_on_failure:
+                    raise ex
                 continue
 
         return comfy_api_io.NodeOutput(model_patched, clip_patched)
